@@ -1,0 +1,7 @@
+/* basit bir css testi */
+h1 {
+    font-size: 24px;
+    color: #0008ff; 
+    margin-bottom: 20px;
+    text-align: center; 
+}
