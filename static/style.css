@@ -1,7 +1,47 @@
-/* basit bir css testi */
 h1 {
-    font-size: 24px;
-    color: #0008ff; 
+    font-size: 50px;
+    font-family: Arial;
+    font-weight: bold;
+    color: #2980b9; 
     margin-bottom: 20px;
     text-align: center; 
+    margin-top: 20px;  /* Add space above the button */
+    margin-left: auto;
+    margin-right: auto;  /* Center the button horizontally */
 }
+#video{
+    display: block;  /* Make the button take up the full width */
+    margin-top: 20px;  /* Add space above the button */
+    margin-left: auto;
+    margin-right: auto;  /* Center the button horizontally */
+}
+#canvas{
+    display: block;  /* Make the button take up the full width */
+    margin-top: 20px;  /* Add space above the button */
+    margin-left: auto;
+    margin-right: auto;  /* Center the button horizontally */
+    border: 3px solid #000000; 
+
+}
+
+#takePhotoBtn {
+    width: 300px;
+    background-color: #3498db; 
+    color: white;              
+    padding: 25px 50px;     
+    border: none;               /* Remove default border */
+    border-radius: 5px;          /* Rounded corners */
+    cursor: pointer;            /* Indicate clickable button */
+    font-size: 30px;         
+    font-weight: bold;         
+    transition: background-color 0.2s ease-in-out; /* Smooth hover effect */
+    display: block;  /* Make the button take up the full width */
+    margin-top: 20px;  /* Add space above the button */
+    margin-left: auto;
+    margin-right: auto;  /* Center the button horizontally */
+  }
+  
+  #takePhotoBtn:hover {
+    background-color: #2980b9;  /* Darker blue on hover */
+  }
+  
