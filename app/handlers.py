@@ -5,6 +5,9 @@ import base64
 import cv2
 import numpy as np
 import  os
+import requests
+from utils import image_processing
+
 class MyHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
@@ -35,6 +38,20 @@ class MyHandler(BaseHTTPRequestHandler):
                 self.send_header('Content-type', 'text/plain')
                 self.end_headers()
                 self.wfile.write(b'File not found')
+        elif self.path == '/image':
+            # Serve the processed grayscale image
+            try:
+                with open('images/gray_image.jpg', 'rb') as file:
+                    content = file.read()
+                self.send_response(200)
+                self.send_header('Content-type', 'image/jpeg')
+                self.end_headers()
+                self.wfile.write(content)
+            except FileNotFoundError:
+                self.send_response(404)
+                self.send_header('Content-type', 'text/plain')
+                self.end_headers()
+                self.wfile.write(b'Image not found')
         else:
             # Handle other paths
             self.send_response(404)
@@ -44,21 +61,31 @@ class MyHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         if self.path == '/upload':
-            print('POST request received')
-            # Get the content length of the POST request
-            content_length = int(self.headers['Content-Length'])
-            # Parse the POST data
-            post_data = self.rfile.read(content_length)
-            # Extract the image data from the POST data
-            _, img_data = post_data.split(b';base64,')
-            img_data = base64.b64decode(img_data)
-            print('Image data received')
-            img = cv2.imdecode(np.frombuffer(img_data, np.uint8), cv2.IMREAD_COLOR)
-            
-            #display detected image
-            cv2.imshow('Detected Image', img)
-            cv2.waitKey(0)
-            self.send_response(200)
-            self.send_header('Content-type', 'text/plain')
-            self.end_headers()
-            self.wfile.write(b'Image received and saved successfully')
+            try:
+                # Extract image data from POST request
+                img_data = self._extract_image_data()
+
+                # Process image using imageprocessing.py
+                gray_img = image_processing.process_image(img_data)
+
+                # Save processed image
+                self._save_image(gray_img)
+
+                # Send successful response
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain')
+                self.end_headers()
+                self.wfile.write(b'Image received and saved successfully')
+            except Exception as e:
+                print(f"Error processing image: {e}")
+                self.send_error(500, 'Internal server error')
+
+    def _extract_image_data(self):
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length)
+        _, img_data = post_data.split(b';base64,')
+        img_data = base64.b64decode(img_data)
+        return img_data
+
+    def _save_image(self, img):
+        cv2.imwrite('images/gray_image.jpg', img)

@@ -23,6 +23,7 @@ function reloadPageContent() {
         });
 }
 
+
 // Capture photo from the video stream
 document.getElementById('takePhotoBtn').addEventListener('click', function() {
     var video = document.getElementById('video');
@@ -37,7 +38,23 @@ document.getElementById('takePhotoBtn').addEventListener('click', function() {
     }).then(response => {
         if (response.ok) {
             console.log('Image uploaded successfully');
-            reloadPageContent();
+            // After uploading the image, send a request to the server to process the image
+            fetch('/image', {
+                method: 'GET'
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                // Convert the blob to an image object
+                var image = new Image();
+                image.onload = function() {
+                    // Draw the image onto the canvas
+                    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+                };
+                image.src = URL.createObjectURL(blob);
+            })
+            .catch(error => {
+                console.error('Error fetching server response:', error);
+            });
         } else {
             console.error('Error uploading image');
         }
