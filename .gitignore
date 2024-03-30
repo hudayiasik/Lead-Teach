@@ -1,2 +1,3 @@
 __pycache__
-images/gray_image.jpg
+app/__pycache__/__init__.cpython-311.pyc
+app/__pycache__/handlers.cpython-311.pyc

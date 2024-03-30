@@ -4,23 +4,34 @@
     <meta charset="UTF-8">
     <title>Lead Tech</title>
     <link rel="stylesheet" type="text/css" href="/static/style.css">
-    <script defer src="https://pyscript.net/releases/2022.12.1/pyscript.js"></script>
-    <link rel="stylesheet" href="https://pyscript.net/releases/2022.12.1/pyscript.css">
     
 </head>
 <body>
-    <py-script src="cek.py"></py-script>
     <h1>PHOTO TEST</h1>
     <video id="video" width="640" height="480" autoplay></video>
     <button id="takePhotoBtn">Take Photo</button>
     <canvas id="canvas" width="640" height="480"></canvas>
+    <button id="connectButton">Connect to Bluetooth Device</button>
+
+<script>
+document.getElementById('connectButton').addEventListener('click', function() {
+    // Request to connect to any Bluetooth device
+    navigator.bluetooth.requestDevice({
+        acceptAllDevices: true
+    })
+    .then(device => {
+        // Device is connected, you can do further operations here
+        console.log('Connected to device:', device);
+    })
+    .catch(error => {
+        // Handle errors, if any
+        console.error('Error connecting to Bluetooth device:', error);
+    });
+});
+</script>
 
 
-    <button py-click="sm.askForSerial()" id="open">Open a Serial Port</button>
-    <br>
-    <button py-click ="sendValueFromInputBox(sm)" id="write">Data Send:</button>
-    <br>
-    <input type="text" id="text">
+
     <script src="/static/script.js"></script>
 </body>
 </html>

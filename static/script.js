@@ -1,4 +1,6 @@
 //permision
+
+
 navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }) //back camera
     .then(function(stream) {
         var video = document.getElementById('video');
