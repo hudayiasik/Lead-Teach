@@ -61,21 +61,21 @@ class MyHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         if self.path == '/upload':
+        
             try:
                 # Extract image data from POST request
                 img_data = self._extract_image_data()
 
                 # Process image using imageprocessing.py
-                gray_img = image_processing.process_image(img_data)
+                list,contour_img = image_processing.process_image(img_data)
 
                 # Save processed image
-                self._save_image(gray_img)
-
-                # Send successful response
+                self._save_image(contour_img)
+                print(list)
                 self.send_response(200)
                 self.send_header('Content-type', 'text/plain')
                 self.end_headers()
-                self.wfile.write(b'Image received and saved successfully')
+                self.wfile.write(list.encode())
             except Exception as e:
                 print(f"Error processing image: {e}")
                 self.send_error(500, 'Internal server error')
