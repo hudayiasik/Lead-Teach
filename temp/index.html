@@ -11,29 +11,58 @@
     <video id="video" width="640" height="480" autoplay></video>
     <button id="takePhotoBtn">Take Photo</button>
     <canvas id="canvas" width="640" height="480"></canvas>
-    <div id="textContainer"></div> <!-- Container for displaying the text -->
+    <div id="textContainer">1123</div> <!-- Container for displaying the text -->
 
     <button id="connectButton">Connect to Bluetooth Device</button>
+    <button id="sendTextButton">Send Text via Bluetooth</button> <!-- New button to send text -->
 
-<script>
-document.getElementById('connectButton').addEventListener('click', function() {
-    // Request to connect to any Bluetooth device
-    navigator.bluetooth.requestDevice({
-        acceptAllDevices: true
-    })
-    .then(device => {
-        // Device is connected, you can do further operations here
-        console.log('Connected to device:', device);
-    })
-    .catch(error => {
-        // Handle errors, if any
-        console.error('Error connecting to Bluetooth device:', error);
-    });
-});
-</script>
+    <script>
+        let bluetoothDevice;
+        let characteristic;
 
+        document.getElementById('connectButton').addEventListener('click', function() {
+            navigator.bluetooth.requestDevice({
+                acceptAllDevices: true,
+                optionalServices: ['42ac05e6-9955-42ef-ab86-87111361d3ea'] // Replace with your service UUID
+            })
+            .then(device => {
+                bluetoothDevice = device;
+                return device.gatt.connect();
+            })
+            .then(server => {
+                // Getting the service
+                return server.getPrimaryService('42ac05e6-9955-42ef-ab86-87111361d3ea'); // Replace with your service UUID
+            })
+            .then(service => {
+                // Getting the characteristic
+                return service.getCharacteristic('6414d63c-5b8b-4b2a-b01e-1e1422b9fa64'); // Replace with your characteristic UUID
+            })
+            .then(char => {
+                characteristic = char;
+                console.log('Connected to ESP32 and characteristic obtained:', char);
+            })
+            .catch(error => {
+                console.error('Error connecting to Bluetooth device:', error);
+            });
+        });
 
-
-    <script src="/static/script.js"></script>
+        document.getElementById('sendTextButton').addEventListener('click', function() {
+            if (!characteristic) {
+                console.error('No characteristic available to send data.');
+                return;
+            }
+            const text = document.getElementById('textContainer').innerText;
+            const encoder = new TextEncoder();
+            const data = encoder.encode(text);
+            characteristic.writeValue(data)
+            .then(() => {
+                console.log('Text sent via Bluetooth:', text);
+            })
+            .catch(error => {
+                console.error('Error sending text via Bluetooth:', error);
+            });
+        });
+    </script>
+<script src="/static/script.js"></script>
 </body>
 </html>
