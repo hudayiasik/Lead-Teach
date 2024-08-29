@@ -67,15 +67,15 @@ class MyHandler(BaseHTTPRequestHandler):
                 img_data = self._extract_image_data()
 
                 # Process image using imageprocessing.py
-                list,contour_img = image_processing.process_image(img_data)
+                liste,contour_img = image_processing.process_image(img_data)
 
                 # Save processed image
                 self._save_image(contour_img)
-                print(list)
+                print(liste)
                 self.send_response(200)
                 self.send_header('Content-type', 'text/plain')
                 self.end_headers()
-                self.wfile.write(list.encode())
+                self.wfile.write(liste.encode())
             except Exception as e:
                 print(f"Error processing image: {e}")
                 self.send_error(500, 'Internal server error')

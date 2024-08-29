@@ -1,73 +1,107 @@
 import cv2
 import numpy as np
 
+def reorder(point):
+    new_points = np.zeros((4, 2), dtype=np.int32)
+    point = point.reshape((4, 2))
+    add = point.sum(1)
+    new_points[0] = point[np.argmin(add)]  # Top-left point
+    new_points[2] = point[np.argmax(add)]  # Bottom-right point
+    diff = np.diff(point, axis=1)
+    new_points[1] = point[np.argmin(diff)]  # Top-right point
+    new_points[3] = point[np.argmax(diff)]  # Bottom-left point
+    return new_points
+
 def load_templates():
     templates = {}
 
     # Load card type templates
-    card_types = ['up', 'down', 'left', 'right', 'start_loop', 'end_loop', 'dfn_fn', 'call_fn', 'dance', 'music', 'run']
+    #card_types = ['up', 'down', 'left', 'right', 'blue_led', 'red_led', 'green_led','off_led','check','cross','hearth','wait','loop_2','loop_3','loop_4','loop_stop','music_1','music_2','music_3']
+    card_types = ['up', 'down', 'left', 'right', 'check','cross','hearth','loop_2','loop_3','loop_4','loop_stop','music_1']
     for card_type in card_types:
-        template = cv2.imread(f'templates/color/{card_type}.png', cv2.IMREAD_GRAYSCALE)
-        _, template_thresh = cv2.threshold(template, 230, 255, cv2.THRESH_BINARY)
-        templates[card_type] = template_thresh
-        if template is None :
+        template = cv2.imread(f'templates/correct_blocks/{card_type}.jpg', cv2.IMREAD_GRAYSCALE)
+        #_, template_thresh = cv2.threshold(template, 100, 350, cv2.THRESH_BINARY)
+        #show images
+        
+        templates[card_type] = template
+        if template is None:
             print('Error loading images.')
             exit(1)
-        
 
     return templates
 
 def match_template(card_image, templates):
+
     best_match = None
-    max_val = -1
-
     for name, template in templates.items():
-        res = cv2.matchTemplate(card_image, template, cv2.TM_CCOEFF_NORMED)
-        min_val, max_val_temp, min_loc, max_loc = cv2.minMaxLoc(res)
-        if max_val_temp > max_val:
-            max_val = max_val_temp
+        gray_warped = cv2.cvtColor(card_image, cv2.COLOR_BGR2GRAY)
+        result = cv2.matchTemplate(gray_warped, template, cv2.TM_CCOEFF_NORMED)
+        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+        #print(f'{name}: {max_val}')
+        if max_val > 0.6:  # Adjust the threshold as needed
             best_match = name
-
+            print(f'{name}: {max_val}')
+            break
     return best_match
+
 def process_image(img_data):
     img = cv2.imdecode(np.frombuffer(img_data, np.uint8), cv2.IMREAD_COLOR)
-    blurred = cv2.GaussianBlur(img, (9, 1), 0)
-    edges = cv2.Canny(blurred, 50, 150)
-    #cv2.imshow('edges', edges)
-    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    # Create a copy of the original image to draw contours
-    contour_image = img.copy()
-    # Load card type templates
+
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray_inverted = cv2.bitwise_not(gray)
+    _, binary = cv2.threshold(gray_inverted, 125, 255, cv2.THRESH_BINARY)
+    contours, _ = cv2.findContours(binary, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    final_contours = [c for c in contours if cv2.contourArea(c) > 10000]
+
+    corners = []
+    for contour in final_contours:
+        epsilon = 0.1 * cv2.arcLength(contour, True)
+        approx = cv2.approxPolyDP(contour, epsilon, True)
+        if len(approx) == 4:  # Only consider quadrilateral contours
+            corners.append(approx)
+
+    width, height = 150, 150
+    dst_points = np.array([
+        [0, 0],
+        [width - 1, 0],
+        [width - 1, height - 1],
+        [0, height - 1]
+    ], dtype=np.float32)
+
+    warped_images = []
+    image_copy = img.copy()
     card_templates = load_templates()
-    # Iterate over all contours and approximate each one
-    card_count = 0  # Counter to keep track of the number of cards
     code_block_list = ""
+    card_count = 0
 
-    for contour in contours:
-        # Only consider contours that are large enough to be a card
-        if cv2.contourArea(contour) > 500:  # Adjusted threshold
-            epsilon = 0.02 * cv2.arcLength(contour, True)
-            approx = cv2.approxPolyDP(contour, epsilon, True)
+    for corner in corners:
+        reordered_corners = reorder(corner)
+        M = cv2.getPerspectiveTransform(reordered_corners.astype(np.float32), dst_points)
+        warped_image = cv2.warpPerspective(image_copy, M, (width, height))
+        warped_images.append(warped_image)
 
-            # Check if the contour has four points
-            if len(approx) == 4:
-                # Get the points in a consistent order
-                pts = np.float32([approx[0][0], approx[1][0], approx[2][0], approx[3][0]])
+        image_copy = cv2.drawContours(image_copy, [corner], -1, (0, 0, 255), 2)
 
-                # Define the destination points for the top-down view
-                width, height = 200, 200  # Adjust these values based on card size
-                dst_pts = np.float32([[0, 0], [width, 0], [width, height], [0, height]])
-                matrix = cv2.getPerspectiveTransform(pts, dst_pts)
-                warped = cv2.warpPerspective(img, matrix, (width, height))
-                warped_gray = cv2.cvtColor(warped, cv2.COLOR_BGR2GRAY)
-                _, warped_thresh = cv2.threshold(warped_gray, 230, 255, cv2.THRESH_BINARY)
-                card_type = match_template(warped_thresh, card_templates)
-                print(f'Card {card_count + 1}: {card_type}')
-                code_block_list += card_type + ","
-                card_count += 1
-                #cv2.imshow(f'Card {card_count}', warped_thresh)
-                cv2.drawContours(contour_image, [approx], -1, (0, 255, 0), 2)
-    print(code_block_list)
-    return code_block_list,edges
+    for warped_image in warped_images:      
+        cv2.imshow('warped', warped_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        result = match_template(warped_image, card_templates)
+        if result:
+            code_block_list += result + ","
+            card_count += 1
+
+    print(f'Cards found: {card_count}')
+    print(f'Results: {code_block_list}')
+
+    return code_block_list, image_copy
 
 
+
+
+
+
+    
+    
+img_data = open('./temp.jpg', 'rb').read()
+list,contour_img = process_image(img_data)
