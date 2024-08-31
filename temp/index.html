@@ -11,31 +11,41 @@
     <video id="video" width="640" height="480" autoplay></video>
     <button id="takePhotoBtn">Take Photo</button>
     <canvas id="canvas" width="640" height="480"></canvas>
-    <div id="textContainer">1123</div> <!-- Container for displaying the text -->
+    <div id="textContainer">1123
+        
+    </div> <!-- Container for displaying the text -->
 
     <button id="connectButton">Connect to Bluetooth Device</button>
     <button id="sendTextButton">Send Text via Bluetooth</button> <!-- New button to send text -->
 
     <script>
+        const UART_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+
+        // Allows the micro:bit to transmit a byte array
+        const UART_TX_CHARACTERISTIC_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+
+        // Allows a connected client to send a byte array
+        const UART_RX_CHARACTERISTIC_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
         let bluetoothDevice;
         let characteristic;
 
         document.getElementById('connectButton').addEventListener('click', function() {
             navigator.bluetooth.requestDevice({
                 acceptAllDevices: true,
-                optionalServices: ['42ac05e6-9955-42ef-ab86-87111361d3ea'] // Replace with your service UUID
+                optionalServices: [UART_SERVICE_UUID] // Replace with your service UUID
             })
             .then(device => {
+                console.log("Connecting to GATT Server...");
                 bluetoothDevice = device;
                 return device.gatt.connect();
             })
             .then(server => {
                 // Getting the service
-                return server.getPrimaryService('42ac05e6-9955-42ef-ab86-87111361d3ea'); // Replace with your service UUID
+                return server.getPrimaryService(UART_SERVICE_UUID); // Replace with your service UUID
             })
             .then(service => {
-                // Getting the characteristic
-                return service.getCharacteristic('6414d63c-5b8b-4b2a-b01e-1e1422b9fa64'); // Replace with your characteristic UUID
+                // Getting the RX characteristic (to micro:bit)
+                return service.getCharacteristic(UART_RX_CHARACTERISTIC_UUID);
             })
             .then(char => {
                 characteristic = char;
@@ -53,7 +63,7 @@
             }
             const text = document.getElementById('textContainer').innerText;
             const encoder = new TextEncoder();
-            const data = encoder.encode(text);
+            data = encoder.encode(text+"\n");
             characteristic.writeValue(data)
             .then(() => {
                 console.log('Text sent via Bluetooth:', text);
@@ -64,5 +74,6 @@
         });
     </script>
 <script src="/static/script.js"></script>
+
 </body>
 </html>
