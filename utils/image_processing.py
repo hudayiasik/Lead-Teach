@@ -50,6 +50,8 @@ def process_image(img_data):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     gray_inverted = cv2.bitwise_not(gray)
     _, binary = cv2.threshold(gray_inverted, 110, 255, cv2.THRESH_BINARY)
+    #show images
+
     contours, _ = cv2.findContours(binary, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     final_contours = [c for c in contours if cv2.contourArea(c) > 11000]
 
@@ -79,15 +81,9 @@ def process_image(img_data):
         M = cv2.getPerspectiveTransform(reordered_corners.astype(np.float32), dst_points)
         warped_image = cv2.warpPerspective(image_copy, M, (width, height))
         warped_images.append(warped_image)
-
         image_copy = cv2.drawContours(image_copy, [corner], -1, (0, 0, 255), 2)
-        cv2.imshow('contour', image_copy)
     for warped_image in warped_images:      
         #show images in size 150x150
-        cv2.imshow('warped', cv2.resize(warped_image, (150, 150)))
-
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
         result = match_template(warped_image, card_templates)
         if result:
             code_block_list += result + ","
@@ -100,5 +96,5 @@ def process_image(img_data):
 
 
    
-img_data = open('./test.jpg', 'rb').read()
-list,contour_img = process_image(img_data)
+#img_data = open('./gray_image.jpg', 'rb').read()
+#list,contour_img = process_image(img_data)

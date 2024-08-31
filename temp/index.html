@@ -2,23 +2,42 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lead Tech</title>
-    <link rel="stylesheet" type="text/css" href="/static/style.css">
-    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../static/style.css">
 </head>
 <body>
-    <h1>PHOTO TEST</h1>
-    <video id="video" width="640" height="480" autoplay></video>
-    <button id="takePhotoBtn">Take Photo</button>
-    <canvas id="canvas" width="640" height="480"></canvas>
-    <div id="textContainer">1123
-        
-    </div> <!-- Container for displaying the text -->
+    <div class="container-fluid text-light d-flex align-items-center justify-content-center min-vh-100">
+        <div class="row w-100">
+            <!-- Main Content -->
+            <div class="col-md-12 d-flex flex-column align-items-center justify-content-center">
+                <div class="neon-frame mb-4">
+                    <h1 class="neon-text text-center">Lead Tech</h1>
+                </div>
+                <div class="row justify-content-center w-100">
+                    <div class="col-md-5 mb-4">
+                        <div class="camera-area neon-border">
+                                <video class="w-100" id="video" width="640" height="100%" autoplay></video>
+                                <canvas class="w-100" id="canvas" width="640" height="480" hidden></canvas>
+								<button class="btn btn-primary neon-btn" id="takePhotoBtn">TARA</button>
+								
+									<div class="row" >
+										<div class="col-md-6 mt-4">
+											<button class="btn btn-primary neon-btn"  id="connectButton">Bluetooth İle Bağlan</button>
+										</div>
+											
+										<div class="col-md-6 mt-4">
+											<button class="btn btn-primary neon-btn"  id="sendTextButton">Kodu Gönder</button> <!-- New button to send text -->
+										</div>
+									</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 
-    <button id="connectButton">Connect to Bluetooth Device</button>
-    <button id="sendTextButton">Send Text via Bluetooth</button> <!-- New button to send text -->
-
-    <script>
+	 <script>
         const UART_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
 
         // Allows the micro:bit to transmit a byte array
@@ -73,7 +92,8 @@
             });
         });
     </script>
-<script src="/static/script.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="/static/script.js"></script>
+    
 </body>
 </html>
